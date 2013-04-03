@@ -1,0 +1,244 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      8894,        235]
+NotebookOptionsPosition[      8404,        215]
+NotebookOutlinePosition[      8762,        231]
+CellTagsIndexPosition[      8719,        228]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"SetDirectory", "[", "\"\</Users/rlk/Projects/sht/etc\>\"", 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.573832368599575*^9, 3.573832381153373*^9}, {
+  3.573840482266728*^9, 3.573840483642128*^9}, {3.573840825632901*^9, 
+  3.573840826031145*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetOptions", "[", 
+   RowBox[{"ListPlot", ",", 
+    RowBox[{"BaseStyle", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"FontFamily", "\[Rule]", "\"\<Consolas\>\""}], ",", 
+       RowBox[{"FontSize", "\[Rule]", "14"}]}], "}"}]}]}], "]"}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.573833930758445*^9, 3.573833968945982*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"Time", "[", "l_", "]"}], ":=", 
+  RowBox[{"l", "[", 
+   RowBox[{"[", "2", "]"}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SizeAndTime", "[", "l_", "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Log", "[", 
+     RowBox[{"2", ",", 
+      RowBox[{"l", "[", 
+       RowBox[{"[", "1", "]"}], "]"}]}], "]"}], ",", 
+    RowBox[{"Log", "[", 
+     RowBox[{"10", ",", 
+      RowBox[{"l", "[", 
+       RowBox[{"[", "2", "]"}], "]"}]}], "]"}]}], 
+   "}"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SizeAndRMS", "[", "l_", "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Log", "[", 
+     RowBox[{"2", ",", 
+      RowBox[{"l", "[", 
+       RowBox[{"[", "1", "]"}], "]"}]}], "]"}], ",", 
+    RowBox[{"l", "[", 
+     RowBox[{"[", "4", "]"}], "]"}]}], "}"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SizeAndMax", "[", "l_", "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"Log", "[", 
+     RowBox[{"2", ",", 
+      RowBox[{"l", "[", 
+       RowBox[{"[", "1", "]"}], "]"}]}], "]"}], ",", 
+    RowBox[{"l", "[", 
+     RowBox[{"[", "6", "]"}], "]"}]}], "}"}]}]}], "Input",
+ CellChangeTimes->{{3.5738325237799873`*^9, 3.5738325357633333`*^9}, {
+  3.573832569463016*^9, 3.573832736048473*^9}, {3.573832971813208*^9, 
+  3.573833008180443*^9}, {3.573833553182056*^9, 3.573833562862299*^9}, {
+  3.5738337953799334`*^9, 3.573833861203142*^9}, {3.573840497451545*^9, 
+  3.573840529699782*^9}, {3.5738405983893642`*^9, 3.573840613190998*^9}, {
+  3.573840665096766*^9, 3.573840665166932*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SHPlot", "[", "fun_", "]"}], ":=", 
+  RowBox[{"ListPlot", "[", 
+   RowBox[{
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"Map", "[", 
+       RowBox[{"fun", ",", 
+        RowBox[{"Import", "[", "\"\<shquant-F.dat\>\"", "]"}]}], "]"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Map", "[", 
+       RowBox[{"fun", ",", 
+        RowBox[{"Import", "[", "\"\<shquant-D.dat\>\"", "]"}]}], "]"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"Map", "[", 
+       RowBox[{"fun", ",", 
+        RowBox[{"Import", "[", "\"\<shquant-L.dat\>\"", "]"}]}], "]"}]}], 
+     "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"Joined", "\[Rule]", "True"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"DataRange", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "9"}], "}"}]}], ",", "\[IndentingNewLine]", 
+    RowBox[{"PlotRange", "\[Rule]", "All"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"PlotStyle", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"Thick", ",", "Red"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"Thick", ",", "Green"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"Thick", ",", "Blue"}], "}"}]}], "}"}]}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{"Mesh", "\[Rule]", "All"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"MeshStyle", "\[Rule]", "Black"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"AxesOrigin", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "0"}], "}"}]}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.573832792660624*^9, 3.573832823600154*^9}, {
+  3.573832887931052*^9, 3.5738329177543907`*^9}, {3.573832948741137*^9, 
+  3.573832951362907*^9}, {3.573833015252451*^9, 3.573833040644495*^9}, {
+  3.5738331131998262`*^9, 3.573833167110832*^9}, {3.5738332133061438`*^9, 
+  3.573833382171164*^9}, {3.573833496014823*^9, 3.573833512670505*^9}, {
+  3.573833576400588*^9, 3.573833615954898*^9}, {3.5738336952559843`*^9, 
+  3.5738337213626337`*^9}, {3.573839695675267*^9, 3.5738396990500793`*^9}, {
+  3.5740093149120197`*^9, 3.574009317701572*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SUPlot", "[", "]"}], ":=", 
+  RowBox[{"ListPlot", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"With", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"dat", "=", 
+        RowBox[{"Map", "[", 
+         RowBox[{"Time", ",", 
+          RowBox[{"Import", "[", "\"\<shquant-j.dat\>\"", "]"}]}], "]"}]}], 
+       "}"}], ",", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"dat", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], "/", "dat"}]}], "\[IndentingNewLine]",
+      "]"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"Joined", "\[Rule]", "True"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"DataRange", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "16"}], "}"}]}], ",", "\[IndentingNewLine]", 
+    RowBox[{"PlotRange", "\[Rule]", "All"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"PlotStyle", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"Thick", ",", "Magenta"}], "}"}]}], ",", "\[IndentingNewLine]", 
+    
+    RowBox[{"Mesh", "\[Rule]", "All"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"MeshStyle", "\[Rule]", "Black"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"AxesOrigin", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "0"}], "}"}]}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.573832792660624*^9, 3.573832823600154*^9}, {
+  3.573832887931052*^9, 3.5738329177543907`*^9}, {3.573832948741137*^9, 
+  3.573832951362907*^9}, {3.573833015252451*^9, 3.573833040644495*^9}, {
+  3.5738331131998262`*^9, 3.573833167110832*^9}, {3.5738332133061438`*^9, 
+  3.573833382171164*^9}, {3.573833496014823*^9, 3.573833512670505*^9}, {
+  3.573833576400588*^9, 3.573833615954898*^9}, {3.5738336952559843`*^9, 
+  3.5738337213626337`*^9}, {3.573839695675267*^9, 3.5738396990500793`*^9}, {
+  3.5738404098855133`*^9, 3.573840471739191*^9}, {3.573840542220654*^9, 
+  3.573840578149358*^9}, {3.573840620086453*^9, 3.573840634246419*^9}, {
+  3.573840679712446*^9, 3.573840682173957*^9}, {3.5738407193124657`*^9, 
+  3.573840721207534*^9}, {3.573840783523361*^9, 3.5738407835846043`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"Outline", "[", "fig_", "]"}], ":=", 
+   RowBox[{"First", "@", 
+    RowBox[{"ImportString", "[", 
+     RowBox[{
+      RowBox[{"ExportString", "[", 
+       RowBox[{"fig", ",", "\"\<PDF\>\""}], "]"}], ",", "\"\<PDF\>\"", ",", 
+      RowBox[{"\"\<TextMode\>\"", "\[Rule]", "\"\<Outlines\>\""}]}], 
+     "]"}]}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.573834371374983*^9, 3.5738343993946543`*^9}, {
+  3.5738345444529448`*^9, 3.573834550243177*^9}}],
+
+Cell[BoxData[{
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<plot-nt.pdf\>\"", ",", 
+   RowBox[{"Outline", "[", 
+    RowBox[{"SHPlot", "[", "SizeAndTime", "]"}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<plot-nr.pdf\>\"", ",", 
+   RowBox[{"Outline", "[", 
+    RowBox[{"SHPlot", "[", "SizeAndRMS", "]"}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<plot-nm.pdf\>\"", ",", 
+   RowBox[{"Outline", "[", 
+    RowBox[{"SHPlot", "[", "SizeAndMax", "]"}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<plot-j.pdf\>\"", ",", 
+   RowBox[{"Outline", "[", 
+    RowBox[{"SUPlot", "[", "]"}], "]"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.573833524228715*^9, 3.573833531746992*^9}, {
+  3.573834030179214*^9, 3.573834097788434*^9}, {3.573834151886133*^9, 
+  3.573834160112193*^9}, {3.573834252936345*^9, 3.573834255367221*^9}, {
+  3.573834405177517*^9, 3.573834416824513*^9}, {3.573840845248477*^9, 
+  3.573840853759763*^9}}]
+},
+WindowSize->{719, 1182},
+WindowMargins->{{761, Automatic}, {Automatic, 144}},
+FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (October 5, \
+2011)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 266, 5, 27, "Input"],
+Cell[826, 27, 373, 10, 27, "Input"],
+Cell[1202, 39, 1545, 43, 73, "Input"],
+Cell[2750, 84, 2089, 46, 178, "Input"],
+Cell[4842, 132, 2036, 41, 178, "Input"],
+Cell[6881, 175, 492, 12, 43, "Input"],
+Cell[7376, 189, 1024, 24, 73, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+montage -tile 8x8 -geometry 64x32+4+4 -background none \
+	sh0000.png sh0003.png sh0008.png sh0015.png sh0024.png sh0035.png sh0048.png sh0063.png \
+    sh0001.png sh0002.png sh0007.png sh0014.png sh0023.png sh0034.png sh0047.png sh0062.png \
+    sh0004.png sh0005.png sh0006.png sh0013.png sh0022.png sh0033.png sh0046.png sh0061.png \
+    sh0009.png sh0010.png sh0011.png sh0012.png sh0021.png sh0032.png sh0045.png sh0060.png \
+    sh0016.png sh0017.png sh0018.png sh0019.png sh0020.png sh0031.png sh0044.png sh0059.png \
+    sh0025.png sh0026.png sh0027.png sh0028.png sh0029.png sh0030.png sh0043.png sh0058.png \
+    sh0036.png sh0037.png sh0038.png sh0039.png sh0040.png sh0041.png sh0042.png sh0057.png \
+    sh0049.png sh0050.png sh0051.png sh0052.png sh0053.png sh0054.png sh0055.png sh0056.png \
+    shmontage.png

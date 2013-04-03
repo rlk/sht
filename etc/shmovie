@@ -1,0 +1,16 @@
+#!/bin/sh
+
+w=64
+h=32
+n=8
+i=0
+
+for (( l = 0; l < n; l++ ))
+    do
+        for (( m = -$l; m <= l; m++, i++ ))
+        do
+            name=`printf "sh%04d.png" $i`
+            echo $name
+            ./shimage -l $l -m $m -w $w -h $h -b 1 -o $name
+        done
+    done
