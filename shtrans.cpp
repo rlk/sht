@@ -33,58 +33,82 @@
 
 //------------------------------------------------------------------------------
 
+static inline bool ispow2(int n)
+{
+    return n && !(n & (n - 1));
+}
+
+static inline int pow2(int n)
+{
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+
+    return n;
+}
+
+//------------------------------------------------------------------------------
+
 static int usage(const char *exe)
 {
     fprintf(stderr,
-            "%s    [-o output] [-n n] [-b b] input\n"
-            "\t-o ... Output file name (out.tif)\n"
-            "\t-b ... Output depth     (4)\n"
-            "\t-n ... Analysis degree  (3)\n\n"
+            "%s -i [-FDL] [-o output] [-n n] [-b b] input\n"
+            "\t-F ..... Float precision\n"
+            "\t-D ..... Double precision\n"
+            "\t-L ..... Long double precision\n"
+            "\t-o ..... Output file name    (out.tif)\n"
+            "\t-b ..... Output depth        (4)\n\n"
 
-            "%s -i [-o output] [-w w] [-h h] [-b b] input\n"
-            "\t-o ... Output file name (out.tif)\n"
-            "\t-b ... Output depth     (4)\n"
-            "\t-w ... Synthesis width  (64)\n"
-            "\t-h ... Synthesis height (32)\n\n",
+            "%s    [-FDL] [-o output] [-n n] [-b b] [-hlg w] [-d] input\n"
+            "\t-h width ... Hanning  filter (n)\n"
+            "\t-l width ... Lanczos  filter (n)\n"
+            "\t-g width ... Gaussian filter (n)\n"
+            "\t-d ......... Diffuse convolution\n\n"
 
-            exe, exe);
+            , exe, exe);
 
     return -1;
 }
 
-template <typename real> void syn(const char *in, const char *out, int w, int h, int b)
+template <typename real> void syn(const char *in, const char *out, int bb)
 {
     float *src = 0;
     float *dst = 0;
-    int    W;
-    int    H;
-    int    B;
-    int    C;
+    int    w;
+    int    h;
+    int    b;
+    int    c;
 
     // Load the image and cast it to floating point.
 
-    if ((src = image_read_float(in, &W, &H, &C, &B)))
+    if ((src = image_read_float(in, &w, &h, &c, &b)))
     {
-        // The input must be square and the requested output size reasonable.
+        // The input must be square.
 
-        if (W == H && w > 0 && h > 0 && b > 0)
+        if (w == h)
         {
+            int n = pow2(w);
+
             // Allocate a destination buffer.
 
-            if ((dst = (float *) calloc(w * h * C, sizeof (float))))
+            if ((dst = (float *) calloc(4 * n * n * c, sizeof (float))))
             {
                 // Instance the transformer and do the work.
 
-                sht<real> T(H, w, h, C);
+                sht<real> T(n, c);
 
-                T.F.set(src);
+                T.F.set(src, w);
                 T.syn();
-                T.S.get(dst);
+                T.S.get(dst, 2 * n);
 
-                image_write_float(out, w, h, C, b, dst);
+                image_write_float(out, 2 * n, 2 * n, c, bb, dst);
             }
         }
-        else fprintf(stderr, "Bad parameters\n");
+        else fprintf(stderr, "Image must be square\n");
     }
     else fprintf(stderr, "Failed to load %s\n", in);
 
@@ -92,53 +116,49 @@ template <typename real> void syn(const char *in, const char *out, int w, int h,
     free(src);
 }
 
-template <typename real> void ana(const char *in, const char *out, int n, int b)
+template <typename real> void ana(const char *in,
+                                  const char *out, int bb, int fo, int fn)
 {
     float *src = 0;
     float *dst = 0;
-    float *tmp = 0;
-    int    W;
-    int    H;
-    int    B;
-    int    C;
+    int    w;
+    int    h;
+    int    b;
+    int    c;
 
     // Load the image and cast it to floating point.
 
-    if ((src = image_read_float(in, &W, &H, &C, &B)))
+    if ((src = image_read_float(in, &w, &h, &c, &b)))
     {
-        if (n > 0)
+        if (ispow2(w) && ispow2(h))
         {
-            // Determine the smallest image meeting Nyquist's criterion.
-
-            int w = std::max(n * 2, W);
-            int h = std::max(n * 2, H);
-
-            // If the input is too small, upsample it up before analysis.
-
-            if (w != W || h != H)
-            {
-                tmp = src;
-                src = image_scale_float(w, h, W, H, C, tmp);
-            }
+            int n = w / 2;
 
             // Allocate a destination buffer and do the work.
 
-            if ((dst = (float *) calloc(n * n * C, sizeof (float))))
+            if ((dst = (float *) calloc(n * n * c, sizeof (float))))
             {
-                sht<real> T(n, w, h, C);
+                sht<real> T(n, c);
 
-                T.S.set(src);
+                T.S.set(src, h);
                 T.ana();
-                T.F.get(dst);
 
-                image_write_float(out, n, n, C, b, dst);
+                switch (fo)
+                {
+                    case 'h': T.F.hanning(fn ? fn : n); break;
+                    case 'l': T.F.lanczos(fn ? fn : n); break;
+                    case 'g': T.F.gauss  (fn ? fn : n); break;
+                    case 'd': T.F.diffuse();            break;
+                }
+                T.F.get(dst, n);
+
+                image_write_float(out, n, n, c, bb, dst);
             }
         }
-        else fprintf(stderr, "Bad parameters\n");
+        else fprintf(stderr, "Input must be power-of-two\n");
     }
     else fprintf(stderr, "Failed to load %s\n", in);
 
-    free(tmp);
     free(dst);
     free(src);
 }
@@ -147,30 +167,30 @@ int main(int argc, char **argv)
 {
     // Set default options.
 
-    const char *out = "out.tif";
-    bool        inv = false;
-    int         w   = 64;
-    int         h   = 32;
-    int         b   = 4;
-    int         n   = 3;
-    int         t   = 'L';
+    const char *o = "out.tif";
+    bool        i = false;
+    int         b = 4;
+    int         w = 0;
+    int         t = 'L';
+    int         f = ' ';
 
     // Parse the options.
 
-    int o;
+    int c;
 
-    while ((o = getopt(argc, argv, "b:h:n:o:w:iFDL")) != -1)
-        switch (o)
+    while ((c = getopt(argc, argv, "b:o:h:l:g:diFDL")) != -1)
+        switch (c)
         {
-            case 'b': b = strtol(optarg, 0, 0); break;
-            case 'h': h = strtol(optarg, 0, 0); break;
-            case 'n': n = strtol(optarg, 0, 0); break;
-            case 'w': w = strtol(optarg, 0, 0); break;
-            case 'i': inv = true;               break;
-            case 'o': out = optarg;             break;
-            case 'F': t = o;                    break;
-            case 'D': t = o;                    break;
-            case 'L': t = o;                    break;
+            case 'o': o = optarg;                      break;
+            case 'i': i = true;                        break;
+            case 'F':                           t = c; break;
+            case 'D':                           t = c; break;
+            case 'L':                           t = c; break;
+            case 'b': b = strtol(optarg, 0, 0);        break;
+            case 'h': w = strtol(optarg, 0, 0); f = c; break;
+            case 'l': w = strtol(optarg, 0, 0); f = c; break;
+            case 'g': w = strtol(optarg, 0, 0); f = c; break;
+            case 'd':                           f = c; break;
 
             default: return usage(argv[0]);
         }
@@ -179,19 +199,19 @@ int main(int argc, char **argv)
 
     if (argc > optind)
     {
-        if (inv)
+        if (i)
             switch (t)
             {
-                case 'F':  syn<      float>(argv[optind], out, w, h, b); break;
-                case 'D':  syn<     double>(argv[optind], out, w, h, b); break;
-                case 'L':  syn<long double>(argv[optind], out, w, h, b); break;
+                case 'F':  syn<      float>(argv[optind], o, b); break;
+                case 'D':  syn<     double>(argv[optind], o, b); break;
+                case 'L':  syn<long double>(argv[optind], o, b); break;
             }
         else
             switch (t)
             {
-                case 'F':  ana<      float>(argv[optind], out,    n, b); break;
-                case 'D':  ana<     double>(argv[optind], out,    n, b); break;
-                case 'L':  ana<long double>(argv[optind], out,    n, b); break;
+                case 'F':  ana<      float>(argv[optind], o, b, f, w); break;
+                case 'D':  ana<     double>(argv[optind], o, b, f, w); break;
+                case 'L':  ana<long double>(argv[optind], o, b, f, w); break;
             }
     }
     else return usage(argv[0]);

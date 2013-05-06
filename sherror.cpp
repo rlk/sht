@@ -74,10 +74,7 @@ template <typename real> real maxerr(Flm<real>& F)
 
 template <typename real> void test(int n)
 {
-    int w = n * 2;
-    int h = n * 2;
-
-    sht<real> T(n, w, h, 1);
+    sht<real> T(n, 1);
 
     struct timeval t0;
     struct timeval t1;
@@ -138,8 +135,10 @@ int main(int argc, char **argv)
             case 'F': test<      float>(n); break;
             case 'D': test<     double>(n); break;
             case 'L': test<long double>(n); break;
+#if 0
             case 'W': test< __float80 >(n); break;
             case 'Q': test< __float128>(n); break;
+#endif
         }
     }
     else usage(argv[0]);

@@ -2,37 +2,57 @@
 
 set -x
 
-./sherror -F -n2    > shquant-F.dat
-./sherror -F -n4   >> shquant-F.dat
-./sherror -F -n8   >> shquant-F.dat
-./sherror -F -n16  >> shquant-F.dat
-./sherror -F -n32  >> shquant-F.dat
-./sherror -F -n64  >> shquant-F.dat
-./sherror -F -n128 >> shquant-F.dat
-
-./sherror -D -n2    > shquant-D.dat
-./sherror -D -n4   >> shquant-D.dat
-./sherror -D -n8   >> shquant-D.dat
-./sherror -D -n16  >> shquant-D.dat
-./sherror -D -n32  >> shquant-D.dat
-./sherror -D -n64  >> shquant-D.dat
-./sherror -D -n128 >> shquant-D.dat
-./sherror -D -n256 >> shquant-D.dat
-./sherror -D -n512 >> shquant-D.dat
-
-./sherror -L -n2    > shquant-L.dat
-./sherror -L -n4   >> shquant-L.dat
-./sherror -L -n8   >> shquant-L.dat
-./sherror -L -n16  >> shquant-L.dat
-./sherror -L -n32  >> shquant-L.dat
-./sherror -L -n64  >> shquant-L.dat
-./sherror -L -n128 >> shquant-L.dat
-./sherror -L -n256 >> shquant-L.dat
-./sherror -L -n512 >> shquant-L.dat
-
-rm shquant-j.dat
+rm -f shquant-j.dat
 
 for (( j = 1; j < 32; j++ ))
     do
-	    OMP_NUM_THREADS=$j ./sherror -D -n128 >> shquant-j.dat
+	    OMP_NUM_THREADS=$j ./sherror -D -n512 >> shquant-j.dat
     done
+
+OMP_NUM_THREADS=16 ./sherror -F -n2     > shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n4    >> shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n8    >> shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n16   >> shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n32   >> shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n64   >> shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n128  >> shquant-F.dat
+OMP_NUM_THREADS=16 ./sherror -F -n256  >> shquant-F.dat
+
+OMP_NUM_THREADS=16 ./sherror -D -n2     > shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n4    >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n8    >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n16   >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n32   >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n64   >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n128  >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n256  >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n512  >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n1024 >> shquant-D.dat
+OMP_NUM_THREADS=16 ./sherror -D -n2048 >> shquant-D.dat
+
+OMP_NUM_THREADS=16 ./sherror -L -n2     > shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n4    >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n8    >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n16   >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n32   >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n64   >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n128  >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n256  >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n512  >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n1024 >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n2048 >> shquant-L.dat
+OMP_NUM_THREADS=16 ./sherror -L -n4096 >> shquant-L.dat
+
+OMP_NUM_THREADS=16 ./sherror -Q -n2     > shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n4    >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n8    >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n16   >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n32   >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n64   >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n128  >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n256  >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n512  >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n1024 >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n2048 >> shquant-Q.dat
+OMP_NUM_THREADS=16 ./sherror -Q -n4096 >> shquant-Q.dat
+

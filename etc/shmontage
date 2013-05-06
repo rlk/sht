@@ -1,6 +1,6 @@
 #!/bin/sh
 
-montage -tile 8x8 -geometry 64x32+4+4 -background none \
+montage -tile 8x8 -geometry 64x64+4+4 -background none \
 	sh0000.png sh0003.png sh0008.png sh0015.png sh0024.png sh0035.png sh0048.png sh0063.png \
     sh0001.png sh0002.png sh0007.png sh0014.png sh0023.png sh0034.png sh0047.png sh0062.png \
     sh0004.png sh0005.png sh0006.png sh0013.png sh0022.png sh0033.png sh0046.png sh0061.png \

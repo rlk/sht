@@ -32,7 +32,7 @@
 #include "sh.hpp"
 
 //------------------------------------------------------------------------------
-
+#if 0
 template <typename real> void grace_cathedral(sht<real>& T)
 {
     T.F(0,  0, 0) =  0.79; T.F(0,  0, 1) =  0.44; T.F(0,  0, 2) =  0.54;
@@ -71,19 +71,20 @@ template <typename real> void st_peters_basilica(sht<real>& T)
     T.F(2,  1, 0) =  0.01; T.F(2,  1, 1) =  0.00; T.F(2,  1, 2) =  0.00;
     T.F(2,  2, 0) = -0.08; T.F(2,  2, 1) = -0.06; T.F(2,  2, 2) =  0.00;
 }
+#endif
 
 //------------------------------------------------------------------------------
 
 static int usage(const char *exe)
 {
     fprintf(stderr,
-            "%s [-o output] [-b b] [-l l] [-m m] [-w w] [-h h]\n"
+            "%s [-o output] [-b b] [-l l] [-m m] [-n n]\n"
             "\t-o ... Output file name (out.tif)\n"
             "\t-b ... Output depth     (4)\n"
+            "\t-c ... Output channels  (3)\n"
             "\t-l ... Harmonic degree  (0)\n"
             "\t-m ... Harmonic order   (0)\n"
-            "\t-w ... Synthesis width  (64)\n"
-            "\t-h ... Synthesis height (32)\n\n", exe);
+            "\t-n ... Synthesis degree (256)\n\n", exe);
 
     return -1;
 }
@@ -93,9 +94,9 @@ int main(int argc, char **argv)
     // Set default options.
 
     const char *out = "out.tif";
-    int         w   = 64;
-    int         h   = 32;
-    int         b   = 4;
+    int         n   = 256;
+    int         b   = 1;
+    int         c   = 3;
     int         l   = 0;
     int         m   = 0;
 
@@ -103,14 +104,14 @@ int main(int argc, char **argv)
 
     int o;
 
-    while ((o = getopt(argc, argv, "b:h:l:m:o:w:")) != -1)
+    while ((o = getopt(argc, argv, "b:c:l:m:n:o:")) != -1)
         switch (o)
         {
             case 'b': b = strtol(optarg, 0, 0); break;
-            case 'h': h = strtol(optarg, 0, 0); break;
+            case 'c': c = strtol(optarg, 0, 0); break;
             case 'l': l = strtol(optarg, 0, 0); break;
             case 'm': m = strtol(optarg, 0, 0); break;
-            case 'w': w = strtol(optarg, 0, 0); break;
+            case 'n': n = strtol(optarg, 0, 0); break;
             case 'o': out = optarg;             break;
 
             default: return usage(argv[0]);
@@ -118,39 +119,33 @@ int main(int argc, char **argv)
 
     // Confirm a reasonable output request.
 
-    if (w > 0 && h > 0 && b > 0 && m >= -l && m <= l)
+    if (n > 0 && b > 0 && m >= -l && m <= l && l < n)
     {
-        float *src = 0;
-        float *dst = 0;
-        int n = l + 1;
-
         // Allocate source and destination buffers.
 
-        if ((src = (float *) calloc(n * n * 3, sizeof (float))) &&
-            (dst = (float *) calloc(w * h * 3, sizeof (float))))
+        if (float *dst = (float *) calloc(4 * n * n * c, sizeof (float)))
         {
-            // Construct the input.
+            // Instance the transformer and construct the input.
 
-            Flm<float> F(n, 3);
+            sht<long double> T(n, c);
 
-            F(l, m, 0) = -1;
-            F(l, m, 1) =  1;
+            if (c == 1)
+                T.F(l, m, 0) =  1;
+            else
+            {
+                T.F(l, m, 0) = -1;
+                T.F(l, m, 1) =  1;
+            }
 
-            F.get(src);
+            // Synthesize and store the output.
 
-            // Instance the transformer and do the work.
-
-            sht<long double> T(n, w, h, 3);
-
-            T.F.set(src);
             T.syn();
-            T.S.get(dst);
+            T.S.get(dst, 2 * n);
 
-            image_write_float(out, w, h, 3, b, dst);
+            image_write_float(out, 2 * n, 2 * n, c, b, dst);
+
+            free(dst);
         }
-
-        free(dst);
-        free(src);
     }
     else usage(argv[0]);
 
