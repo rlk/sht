@@ -31,7 +31,7 @@ Given a `2n` &times; `2n` spatial-domain input image, perform a spherical harmon
 
 - `-h width`  
   `-l width`  
-  `-g width`  
+  `-g width`
 
     After analysis, apply a Hanning `-h`, Lanczos `-l`, or Gauss `-g` filter window with the given width. A width of `n` is used if zero is given. Filter selection is documented below.
 
@@ -39,8 +39,8 @@ Given a `2n` &times; `2n` spatial-domain input image, perform a spherical harmon
 
     After analysis, apply the diffuse convolution.
 
-- `-F`
-  `-D`
+- `-F`  
+  `-D`  
   `-L`
 
     Perform the computation using `float`, `double`, or `long double` values. Default is `long double`.
@@ -59,8 +59,8 @@ Given an `n` &times; `n` frequency-domain input image, perform a spherical harmo
 
     Output depth in bytes per sample. 1 requests 8-bit unsigned integer. 2 requests 16-bit unsigned integer. 4 selects selects 32-bit float.
 
-- `-F`
-  `-D`
+- `-F`  
+  `-D`  
   `-L`
 
     Perform the computation using `float`, `double`, or `long double` values. Default is `long double`.
@@ -124,8 +124,8 @@ Here we see the first eight degrees and orders synthesized at degree 64. They ar
 
     Analysis degree. Default is 1.
 
-- `-F`
-  `-D`
+- `-F`  
+  `-D`  
   `-L`
 
     Perform the computation using `float`, `double`, or `long double` values. Default is `long double`.
@@ -147,9 +147,9 @@ Each of these tools uses a spherical harmonic transformation template library gi
 
 - `sht<real>::sht(int n, int c)`
 
-    Construct a spherical harmonic transform object. All internal computation will be performed using the `real` type. The frequency domain representation has order n the spatial domain representation has order 2n &times; 2n. c gives the number of channels of both.
+    Construct a spherical harmonic transform object. All internal computation will be performed using the `real` type. The frequency domain representation has order n the spatial domain representation has order `2n` &times; `2n`. c gives the number of channels of both.
 
-This object has public attributes for input and output. `S` is a `w` &times; `h` spatial domain image with `c` channels of type `real`. `F` is an `n` &times; `n` frequency domain image with `c` channels of type `real`. These images overload the function operator allowing direct access to their contents.
+This object has public attributes for input and output. `S` is a `2n` &times; `2n` spatial domain image with `c` channels of type `real`. `F` is an `n` &times; `n` frequency domain image with `c` channels of type `real`. These images overload the function operator allowing direct access to their contents.
 
 - `real& Flm<real>::operator()(int l, int m, int k)`
 
@@ -185,7 +185,7 @@ In both cases, passing a null pointer to the `set` function initializes the cont
 
 ## Examples
 
-This segment of code shows the basic usage of the API for analysis. A square floating point source image with power-of-two size is read from a file and a floating point destination buffer is allocated. A double precision SHT object is instanced with the desired degree and image parameters supplied to the constructor. The spatial domain input is set and the analysis is performed. Finally, the frequency domain output is acquired and written to a file. Synthesis is similar.
+This segment of code shows the basic usage of the API for analysis. A square source image with power-of-two size is read from a file and a floating point destination buffer is allocated. A double precision SHT object is instanced with the desired degree and image parameters supplied to the constructor. The spatial domain input is set and the analysis is performed. Finally, the frequency domain output is acquired and written to a file. Synthesis is similar.
 
     src = image_read_float("input.tif", &w, &h, &c, &b);
 
@@ -203,7 +203,7 @@ This segment of code shows the basic usage of the API for analysis. A square flo
 
 ### Environment Mapping
 
-The following examples demonstrate the application of the spherical harmonic tools to real-time environment mapping. We begin with this 32-bit floating-point 512 &times; 512 spherical panorama of a St. Peter's Basilica, one of several de facto standard light probes provided by [Paul Debevec](http://www.pauldebevec.com/Probes/), unwrapped and resampled using [envtools](http://kooima.net/applications.html#envtools).
+The following examples demonstrate the application of the spherical harmonic tools to real-time environment mapping. We begin with this 32-bit floating-point 512 &times; 512 spherical panorama of a St. Peter's Basilica, one of several de facto standard light probes provided by [Paul Debevec](http://www.pauldebevec.com/Probes/), unwrapped and resampled using [envtools](http://kooima.net/envtools/README.html).
 
 ![](etc/st-peters.jpg)
 
@@ -337,7 +337,7 @@ In general, there will always be a trade-off between sharpness and ringing. The 
 
 ### Conformance
 
-As a basic eye-ball level test of conformance, the `shtrans` tool was used to synthesize the [EGM 2008](http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/) data set, the Earth Gravitational Model consisting of 2190 degrees of spherical harmonic coefficients. The 8192 &times; 8192 grayscale output was gradient-mapped using [GIGO](http://kooima.net/applications.html#gigo) and scaled down using Photoshop. [It matches.](http://images.google.com/images?q=egm2008)
+As a basic eye-ball level test of conformance, the `shtrans` tool was used to synthesize the [EGM 2008](http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/) data set, the Earth Gravitational Model consisting of 2190 degrees of spherical harmonic coefficients. The 8192 &times; 8192 grayscale output was gradient-mapped using [GIGO](http://kooima.net/gigo/README.html) and scaled down using Photoshop. [It matches.](http://images.google.com/images?q=egm2008)
 
 ![](etc/egm2008.jpg)
 
