@@ -103,7 +103,7 @@ template <typename real> void syn(const char *in, const char *out, int bb)
 
                 T.F.set(src, w);
                 T.syn();
-                T.S.get(dst, 2 * n);
+                T.S.get(dst);
 
                 image_write_float(out, 2 * n, 2 * n, c, bb, dst);
             }

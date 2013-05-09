@@ -133,8 +133,8 @@ template <typename real>
             return S[(2 * n * i + j) * c + k];
         }
 
-        void set(const float *, int n);
-        void get(      float *, int n);
+        void set(const float *, int H=0);
+        void get(      float *, int H=0);
 
         int n;
         int c;
@@ -552,7 +552,7 @@ template <typename real> void Sij<real>::set(const float *p, int H)
 
     // Copy 2n rows into 2n rows.
 
-    if (p && H == h)
+    if (p && (H == h || H == 0))
         for         (int i = 0; i < h; i++)
             for     (int j = 0; j < w; j++)
                 for (int k = 0; k < c; k++)
@@ -561,7 +561,7 @@ template <typename real> void Sij<real>::set(const float *p, int H)
 
     // Copy n rows into 2n rows, duplicating each row and scaling by half.
 
-    if (p && H == n)
+    if (p && (H == n))
         for         (int i = 0; i < n; i++)
             for     (int j = 0; j < w; j++)
                 for (int k = 0; k < c; k++)
@@ -580,24 +580,9 @@ template <typename real> void Sij<real>::get(float *p, int H)
     const int w = 2 * n;
     const int h = 2 * n;
 
-#if 0
-    real min = std::numeric_limits<real>::max();
-    real max = std::numeric_limits<real>::min();
-
-    for         (int i = 0; i < h; i++)
-        for     (int j = 0; j < w; j++)
-            for (int k = 0; k < c; k++)
-            {
-                min = std::min(S[(i * w + j) * c + k], min);
-                max = std::max(S[(i * w + j) * c + k], max);
-            }
-
-    printf("%Lf %Lf\n", min, max);
-#endif
-
     // Copy 2n rows into 2n rows.
 
-    if (H == h)
+    if (H == h || H == 0)
         for         (int i = 0; i < h; i++)
             for     (int j = 0; j < w; j++)
                 for (int k = 0; k < c; k++)

@@ -29,6 +29,16 @@ Given a `2n` &times; `2n` spatial-domain input image, perform a spherical harmon
 
     Output depth in bytes per sample. 1 requests 8-bit unsigned integer. 2 requests 16-bit unsigned integer. 4 selects selects 32-bit float.
 
+- `-h width`  
+  `-l width`  
+  `-g width`  
+
+    After analysis, apply a Hanning `-h`, Lanczos `-l`, or Gauss `-g` filter window with the given width. A width of `n` is used if zero is given. Filter selection is documented below.
+
+- `-d`
+
+    After analysis, apply the diffuse convolution.
+
 - `-F`
   `-D`
   `-L`
@@ -74,17 +84,13 @@ This is a useful layout as it casts an otherwise triangular structure into a squ
 
 ### Visualization of Spherical Harmonics
 
-`shimage [-o output] [-b bytes] [-l l] [-m m] [-n n]`
+`shimage [-o output] [-b bytes] [-c channels] [-l l] [-m m] [-n n]`
 
 This tool synthesizes an example image of a single spherical harmonic function of degree `l` and order `m`. Positive values are rendered in green and negative values in red. The resulting `n` &times; `n` image is helpful in understanding the appearance and behavior of the spherical harmonics.
 
 - `-o output`
 
-          Output file name. Default is "out.tif".
-
-- `-b bytes`
-
-    Output depth in bytes per sample. 1 requests 8-bit unsigned integer. 2 requests 16-bit unsigned integer. 4 selects selects 32-bit float.
+    Output file name. Default is "out.tif".
 
 - `-l l`
 
@@ -97,6 +103,14 @@ This tool synthesizes an example image of a single spherical harmonic function o
 - `-n n`
 
     Synthesis degree, which determines output image size.
+
+- `-b bytes`
+
+    Output depth in bytes per sample. 1 requests 8-bit unsigned integer. 2 requests 16-bit unsigned integer. 4 selects selects 32-bit float.
+
+- `-c channels`
+
+    Output channel count. 3 requests unsigned RGB where green implies positive values and red implies negative. 1 selects signed grayscale. In particular, `b`=1 `c`=3 generates a reasonable visualization of a single spherical harmonic, while `b`=4 `c`=1 generates the real value of that harmonic.
 
 Here we see the first eight degrees and orders synthesized at degree 64. They are laid out in an 8 &times; 8 grid as described by the table above. The zonal harmonics are clearly visible along the diagonal and the increasing frequency is obvious toward the right and down.
 
@@ -116,7 +130,16 @@ Here we see the first eight degrees and orders synthesized at degree 64. They ar
 
     Perform the computation using `float`, `double`, or `long double` values. Default is `long double`.
 
-This tool quantifies the performance and precision of the implementation. It begins with white noise, defined as frequency coefficients of one for all `l` and `m` up to `n`. These coefficients are synthesized at a resolution of `2n` &times; `2n`, and re-analyzed up to degree `n`. The round trip time is measured, and the output frequency coefficients are compared with one, giving root-mean-square error and maximum error. Upon completion, a table of results in printed to `stdout` including the degree n, the run time in seconds, the RMS error, the log2 RMS error, the maximum error, and the log2 maximum error. The log2 results indicate the number of bits to which the output agrees with the input, thus quantifying the numerical stability of synthesis together with analysis. Several runs of this tool are graphed below.
+This tool quantifies the performance and precision of the implementation. It begins with white noise, defined as frequency coefficients of one for all `l` and `m` up to `n`. These coefficients are synthesized at a resolution of `2n` &times; `2n`, and re-analyzed up to degree `n`. The round trip time is measured, and the output frequency coefficients are compared with one, giving root-mean-square error and maximum error. Upon completion, a table of results in printed to `stdout` including
+
+1. the degree n,
+2. the run time in seconds,
+3. the RMS error,
+4. the log2 RMS error,
+5. the maximum absolute error, and
+6. the log2 maximum absolute error.
+
+The log2 results indicate the number of bits to which the output agrees with the input, thus quantifying the numerical stability of synthesis together with analysis. Several runs of this tool are graphed below.
 
 ## API
 
@@ -124,7 +147,7 @@ Each of these tools uses a spherical harmonic transformation template library gi
 
 - `sht<real>::sht(int n, int c)`
 
-    Construct a spherical harmonic transform object. All internal computation will be performed using the `real` type. The frequency domain representation has order n the spatial domain representation has order 2n &times 2n. c gives the number of channels of both.
+    Construct a spherical harmonic transform object. All internal computation will be performed using the `real` type. The frequency domain representation has order n the spatial domain representation has order 2n &times; 2n. c gives the number of channels of both.
 
 This object has public attributes for input and output. `S` is a `w` &times; `h` spatial domain image with `c` channels of type `real`. `F` is an `n` &times; `n` frequency domain image with `c` channels of type `real`. These images overload the function operator allowing direct access to their contents.
 
@@ -149,9 +172,9 @@ With either the spatial domain or frequency domain image set, analysis or synthe
 When performing image IO, both `S` and `F` support bulk transfer functions that automatically cast to and from the internal floating point type to 32-bit floating point.
 
 - `void Flm<real>::set(const float *data, int N)`  
-  `void Flm<real>::get(float *data)`
+  `void Flm<real>::get(float *data, int N)`
 
-    Transfer 32-bit floating point data into or out of the frequency domain image. The `set` buffer argument provides `N` &times; `N` &times; `c` 32-bit floats, which accommodates the specification of a truncated set of coefficients with `N` *not* a power of two. The `get` buffer argument must accommodate `n` &times; `n` &times; `c` 32-bit floats where `n` is a power of two.
+    Transfer 32-bit floating point data into or out of the frequency domain image. The `data` argument must accomodate `N` &times; `N` &times; `c` 32-bit floats. `N` need not be a power of two, and when `N` does not equal `n` then a truncated set of coefficients is accepted or provided.
 
 - `void Sij<real>::set(const float *src)`  
   `void Sij<real>::get(float *dst)`
@@ -164,7 +187,10 @@ In both cases, passing a null pointer to the `set` function initializes the cont
 
 This segment of code shows the basic usage of the API for analysis. A square floating point source image with power-of-two size is read from a file and a floating point destination buffer is allocated. A double precision SHT object is instanced with the desired degree and image parameters supplied to the constructor. The spatial domain input is set and the analysis is performed. Finally, the frequency domain output is acquired and written to a file. Synthesis is similar.
 
-    src = image_read_float("input.tif", &n, &n, &c, &b);
+    src = image_read_float("input.tif", &w, &h, &c, &b);
+
+    n = w / 2;
+
     dst = (float *) calloc(n * n * c, sizeof (float);
 
     sht<double> T(n, c);
@@ -175,75 +201,151 @@ This segment of code shows the basic usage of the API for analysis. A square flo
 
     image_write_float("output.tif", n, n, c, b, dst);
 
-The following examples demonstrate the application of the spherical harmonic tools to real-time environment mapping. We begin with this 24-bit 512 &times; 256 spherical panorama of a swamp.
+### Environment Mapping
 
-![](etc/swamp.png)
+The following examples demonstrate the application of the spherical harmonic tools to real-time environment mapping. We begin with this 32-bit floating-point 512 &times; 512 spherical panorama of a St. Peter's Basilica, one of several de facto standard light probes provided by [Paul Debevec](http://www.pauldebevec.com/Probes/), unwrapped and resampled using [envtools](http://kooima.net/applications.html#envtools).
 
-It's a common practice to map such an image onto a model to generate the appearance of a reflective mirror finish or a refractive glass material.
+![](etc/st-peters.jpg)
 
-![](etc/teapot-reflective.png)
+It's a common practice to map such an image onto a model to generate the appearance of a reflective mirror finish...
 
-![](etc/teapot-refractive.png)
+![](etc/teapot-reflect.png)
 
-Applying the spherical harmonic transform to the swamp image allows us to generalize the appearance of such materials. To begin, the swamp image was analyzed at `n`=512 giving a 32-bit 512 &times; 512 floating point frequency domain image. This output was loaded into Photoshop and cropped to 64 &times; 64 at the upper left. This crop represents only the first 64 degrees of low-frequency information in the input.
+or a refractive glass material with magnifying effects and more subtle reflections. Here, let me hold that up to the light for you.
 
-We can immediately resynthesize this into a low-frequency spatial domain image of the swamp, but to do so would generate high-frequency artifacts knows as Gibbs phenomenon, as cropping behaves like a "brick wall" filter. To circumvent this, we can apply a simple triangular filter window using Photoshop's gradient tool. We drag from the top-left to the bottom-right with a diamond-shaped white-black gradient in multiply mode. This fades out the high frequency artifacts, leaving the low frequency information intact.
+![](etc/teapot-refract.png)
 
-Here's what that looks like. The pixel values are very small and appear black, so the image has been tone-mapped for display here.
+Applying the spherical harmonic transform to the cathedral image allows us to generalize the appearance of such materials through manipulation in the frequency domain. To begin, the image is analyzed at `n`=512 giving a 32-bit 256 &times; 256 floating point frequency domain image.
 
-![](etc/tonemapped-swamp-sh64.png)
+    shtrans -o st-peters-sht.tif st-peters.tif
 
-Synthesizing this image produces a blurred swamp. Critically, however, this is not a simple 2D blur like that produced by a Photoshop filter. Instead, it behaves as though the blur radius were uniform at every point on the sphere, including the poles. In contrast, a 2D blur of a spherical image would behave as if the blur became increasingly thin toward the poles, producing unsightly artifacts there.
+The output looks like this.
 
-![](etc/swamp-64.png)
+![](etc/st-peters-sht.png)
 
-Applying the blurred image to the model shows an imperfect reflection and a frosted refraction, giving a much more natural and realistic material. In addition, all of these images use the 64-degree blurred image as a backdrop, giving the appearance of shallow focus regardless of view direction.
+We can achieve some interesting material effects by removing some of the high-frequency harmonics from it. However, this must be done carefully. To simply crop the frequency domain image at the upper left would corrupt the synthesis with ringing artifacts. Instead, use the `-g` option to apply a Gaussian filter window with a width of 64.
 
-![](etc/teapot-reflective-64.png)
+    shtrans -g64 -o st-peters-sht-g64.tif st-peters.tif
 
-![](etc/teapot-refractive-64.png)
+Here's the result.
 
-We can take this a step further. Here, the frequency-domain image of the swamp is cropped to only 32 &times; 32, and the diamond gradient applied.
+![](etc/st-peters-sht-g64.png)
 
-![](etc/tonemapped-swamp-sh32.png)
+Synthesize this result...
 
-With only 32 degrees of spherical harmonics, only the very low frequencies remain.
+    shtrans -i -o st-peters-g64.tif st-peters-sht-g64.tif
 
-![](etc/swamp-32.png)
+giving this image.
 
-The resulting reflection no longer resembles chrome, and instead takes on the character of pewter or brushed aluminum. In comparison, the perfect reflection provided by the original unfiltered environment map looks downright fake.
+![](etc/st-peters-g64.jpg)
 
-![](etc/teapot-reflective-32.png)
+It's a blurry cathedral. Critically, however, this is not a simple 2D blur like that produced by a Photoshop filter. Instead, it behaves as though the blur radius were uniform at every point on the sphere, including the poles. In contrast, a 2D blur of a spherical image would behave as if the blur became increasingly thin toward the poles, producing unsightly artifacts there.
 
-It's worth noting that a little blur goes a long way toward refraction environment mapping, and the 32-degree refraction is nearly indistinguishable from the 64-degree refraction.
+Applying the blurred image to the model shows an imperfect reflection and a frosted refraction, giving a much more natural and realistic material. In addition, all of these images use the width-64 blurred image as a backdrop, giving the appearance of shallow focus regardless of view direction.
 
-![](etc/teapot-refractive-32.png)
+![](etc/teapot-reflect-64.png)
 
-These are all specular illumination effects, but the spherical harmonic transform provides a means to extend environment mapping into diffuse illumination, as described by Ramamoorthi and Hanrahan in their 2001 SIGGRAPH paper [An Efficient Representation for Irradiance Environment Maps](http://graphics.stanford.edu/papers/envmap/). In this work, Ramamoorthi and Hanrahan note that diffuse illumination is essentially convolution against a cosine-weighted hemisphere, and demonstrate that the resulting "irradiance" need be represented using only three degrees of spherical harmonics.
+![](etc/teapot-refract-64.png)
 
-To put this in action, we crop the 512 &times; 512 frequency domain image down to only 3 &times; 3. Here we see the result magnified.
+We can take this a step further. Here we apply a Gaussian filter with a width of 32.
 
-![](etc/thumbnail-swamp-sh3.png)
+    shtrans -g32 -o st-peters-sht-g32.tif st-peters.tif
 
-The diffuse illumination hemisphere is represented in the frequency domain with a single value per degree, 3.141593 at degree zero, 2.094395 at one, and 0.785398 at two, which are presented analytically in the paper. Here we see that image, also magnified, and tone-mapped so as not to saturate at white. Here is the [original 3 &times; 3 floating point irradiance](etc/irr.tif) stored in a TIFF.
+There's a lot less information in the frequency domain.
 
-![](etc/thumbnail-irr.png)
+![](etc/st-peters-sht-g32.png)
 
-We can load these two images into Photoshop layers, multiply them, and flatten. Synthesizing the result produces the following environment map. This is a perfectly diffuse behavior with no specularity, as if the teapot were now made of clay.
+Therefore there's much more blur in the spatial domain. With only 32 degrees of spherical harmonics, only the very low frequencies remain.
 
-![](etc/teapot-irradiance.png)
+    shtrans -i -o st-peters-g32.tif st-peters-sht-g64.tif
 
-Underscoring the efficiency of their efficient representation for irradiance environment maps, Ramamoorthi and Hanrahan also provide example environments (via Paul Debevec) in the form of three sets of spherical harmonic coefficients. We present them here using the 32-bit floating point TIFF frequency domain representation: [Grace Cathedral](etc/grace_cathedral.tif), [Eucalyptus Grove](etc/eucalyptus_grove.tif), and [St. Peter's Basilica](etc/st_peters_basilica.tif). They look like this, scaled and tone-mapped.
+![](etc/st-peters-g32.jpg)
 
-![](etc/thumbnail-irrenvmap.png)
+The resulting reflection no longer resembles chrome, and instead takes on the character of pewter or brushed aluminum. In the pinkish glow of St. Peter's Basilica, it almost looks like copper. In comparison, the perfect reflection provided by the original unfiltered environment map looks downright fake.
 
-We can trivially synthesize these to give more irradiance environment maps, just as above.
+![](etc/teapot-reflect-32.png)
 
-![](etc/teapot-irrenvmap.png)
+The refractive effect is that of diffuse or frosted glass.
+
+![](etc/teapot-refract-32.png)
+
+### Diffuse Convolution
+
+These are all specular illumination effects, but the spherical harmonic transform provides a means to extend environment mapping into diffuse illumination, as described by Ramamoorthi and Hanrahan in their 2001 SIGGRAPH paper [An Efficient Representation for Irradiance Environment Maps](http://graphics.stanford.edu/papers/envmap/). In this work, Ramamoorthi and Hanrahan note that diffuse illumination is essentially *convolution* with a cosine-weighted hemisphere, and demonstrate that the resulting *irradiance* need be represented using only three degrees of spherical harmonics.
+
+We can apply the diffuse convolution using the `-d` option.
+
+    shtrans -d -o st-peters-sht-dif.tif sh-peters.tif
+
+Indeed, only the top-left 3 &times; 3 block of pixels contains much data. There are a few dim pixels elsewhere, but the literature demonstrates that eliminating these will result in an average error of at most 3%.
+
+![](etc/st-peters-sht-dif.png)
+
+There's so little information here that we could validly crop that image down to 4 &times; 4 (a power of two), resulting in an 8 &times; 8 synthesis with no significant loss of information. But for the sake of consistency with the other examples...
+
+    shtrans -i -o st-peters-dif.tif sh-peters-sht-dif.tif
+
+The resulting *irradiance environment map* is not just very heavily blurred, it actually gives a weighted sum of every input pixel visible at every possible orientation. The sphere map represents the total light falling upon every point on a sphere from every direction. In this example, St. Peter's is well lit from above, and diffuse reflection of the marble gives a pink ambient glow.
+
+![](etc/st-peters-dif.jpg)
+
+When rendering, a single texture reference is made along the object normal. This returns a value equivalent to the usual diffuse lighting calculation, but done for every light source in the room simultaneously. The resulting material is a perfectly matte white, like unglazed ceramic.
+
+![](etc/teapot-matte.png)
+
+Combining this with one of the reflection maps above gives a specular effect, like glazed ceramic, the material of [the original Utah teapot](http://en.wikipedia.org/wiki/Utah_teapot).
+
+![](etc/teapot-gloss.png)
+
+Of course, color and gloss texture maps and normal maps can be combined with these blurred and convolved environment maps, giving very rich and extremely realistic materials.
+
+Here's a summary image giving all of the examples together. Click to enlarge.
+
+[![](etc/st-peters-thumb.png)](etc/st-peters-all.png)
+
+## Filter Selection
+
+The choice of filter is an important one. Ringing artifacts will *always* arise from a spherical harmonic synthesis with an equirectangular projection. This is because the equirectangular projection *badly* matches the true distribution of information on the sphere. In particular, the spatial resolution near the poles is far higher than near the equator, so any reasonable set of spherical harmonic coefficients will be band-limited at high latitude. The available filters will handle different types of images with varying levels of success. The following examples are intended to help clarify this, but ultimately, experience gained through trial and error are most valuable.
+
+The three filter windows are graphed here for `n`=256. The Gauss window, in red, has the familiar shape of the bell curve, dropping off rapidly and approaching zero smoothly. The Hann (a.k.a. Hanning) window, in green, is a cosine wave with equal balance. The Lanczos window (in blue) is the first lobe of the sinc function, dropping off slowly and meeting zero abruptly.
+
+![](etc/filters.png)
+
+When the filter width is less than `n`, the Gauss and Hann windows still clamp out at zero. However, the Lanczos window will oscillate about zero as one would expect from the sync function.
+
+The following example uses a 512 &times; 512 image of a 16 &times; 16 black-white checker pattern. With its high contrast, it represents a worst-case scenario for 8-bit images, and will demonstrate the best choice for round-trip frequency-domain operations upon common spherical images.
+
+The checker input is analyzed and re-synthesized four times. Image A shows the center of the input, which covers the equator where the spherical harmonics match the information density in the image well. Image B shows a synthesis of an unfiltered set of coefficients. The ringing is obvious even in this easy area. Images C, D, and E shows the Gauss, Hann, and Lanczos filters, with each sharper than the last.
+
+![](etc/filter-2.png)
+
+Here is the same set of images, showing instead a portion of the checker pattern in the troublesome region near the north pole. Image B, with no filtering, is dominated by ringing artifacts. The Gauss, Hann, and Lanczos filters are, again, increasingly sharp. Ringing is generally under control, though slightly apparent in the Lanczos image when magnified.
+
+![](etc/filter-1.png)
+
+We can infer from this that *some* form of filtering is necessary. The Lanczos filter preserves the sharpness in the input best, and is probably the go-to choice when doing frequency-domain manipulations of spherical data sets. Blurring is expected and usually even desirable near the poles, especially if the filtered output is to be mapped onto a sphere for real-time texture mapping. Under such circumstances the Gauss filter might produce the most visually appealing results.
+
+Things change when we shift to high dynamic range inputs, such as the light probe of St. Peter's Basilica used in the teapot renderings, above. The following images show the results of each filter applied with a width of 32, cropped at top of the image.
+
+![](etc/filter-3.png)
+
+The Gauss filtering in image A gives a nice, smooth blur. The Hann window, image B, does not handle extremely bright light sources well at all, and produces a severe overshoot. The Lanczos window, image C, produces a surprising kind of bokeh effect with high-frequency ringing produced by the many lobes of the tail of the sinc. It's interesting, but not what we're looking for. For high dynamic range light probes, stick with Gauss.
+
+In general, there will always be a trade-off between sharpness and ringing. The type of the data and its intended usage will determine how this trade-off is best made.
 
 ## Tests
 
-Here we presents some of the output of the `sherror` tool. The task is performed at degrees `n`= 2<sup>1</sup>, 2<sup>2</sup>, 2<sup>3</sup>, 2<sup>4</sup>, 2<sup>5</sup>, 2<sup>6</sup>, 2<sup>7</sup>, 2<sup>8</sup>, 2<sup>9</sup>, 2<sup>10</sup>, 2<sup>11</sup> and 2<sup>12</sup> using single, double, and long double precision floating point values. The software was compiled for OSX 10.8 using g++ 4.7.2. The test hardware used 2 &times; 2.0 GHz eight-core Intel Xeon E5 processors. Data shown here was collected using 16 OpenMP threads.
+### Conformance
+
+As a basic eye-ball level test of conformance, the `shtrans` tool was used to synthesize the [EGM 2008](http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/) data set, the Earth Gravitational Model consisting of 2190 degrees of spherical harmonic coefficients. The 8192 &times; 8192 grayscale output was gradient-mapped using [GIGO](http://kooima.net/applications.html#gigo) and scaled down using Photoshop. [It matches.](http://images.google.com/images?q=egm2008)
+
+![](etc/egm2008.jpg)
+
+### Precision
+
+The `sherror` tool tests the numerical precision of the spherical harmonic transform implementation by synthesizing and re-analyzing white noise. The task is performed at degrees from `n`= 2<sup>1</sup> to 2<sup>12</sup> using single, double, and long double precision floating point values. The output is compared with the input and the degree to which the two match is quantified.
+
+The software was compiled for OSX 10.8 using g++ 4.7.2. The test hardware used 2 &times; 2.0 GHz eight-core Intel Xeon E5 processors. Data shown here was collected using 16 OpenMP threads.
 
 Here are the round trip times, with time in seconds plotted on a log-10 scale. Single precision floating point performance is shown in red, double in green, and long double in blue. G++'s `long double` is in fact an Intel-native 80-bit float, which is the same type that implements single and double precision calculation, so performance parity is not a big surprise. Their stored size varies though, so these results would indicate that the process is not cache-bound on this hardware. The computation is effectively instantaneous when `n` is smaller than 6 and the resolution of the timer was not sufficient to demonstrate any distinction.
 
