@@ -1,12 +1,12 @@
 CC=   $(firstword $(wildcard /usr/local/bin/gcc /usr/bin/gcc))
 CPPC= $(firstword $(wildcard /usr/local/bin/g++ /usr/bin/g++))
 
-#OPTS= -Wall -g -m64
-OPTS= -Wall -O3 -fopenmp -m64 -fstrict-aliasing -fno-exceptions -fno-rtti -march=athlon64
+OPTS= -Wall -g -m64 -Wno-unknown-pragmas
+#OPTS= -Wall -O3 -fopenmp -m64 -fstrict-aliasing -fno-exceptions -fno-rtti -march=athlon64
 
 UTIL= ../util3d
 
-LIBS= -lpng -ljpeg -ltiff
+LIBS= -L/usr/local/lib -lpng -ljpeg -ltiff
 INCS= -I$(UTIL)
 
 #-------------------------------------------------------------------------------

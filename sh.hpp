@@ -115,7 +115,7 @@ template <typename real>
         {
             return F[((l + 1) * l + m) * c + k];
         }
-        
+
         void filter(int, real);
     };
 
@@ -383,6 +383,7 @@ template <typename real> void Cm<real>::clear()
 //------------------------------------------------------------------------------
 // Compute orthonormalized ALF coefficients
 
+#if 0
 template <typename real> inline real Plm<real>::a(int m) const
 {
     return sqrt((2.0 * m + 1.0) /
@@ -437,6 +438,60 @@ template <typename real> void Plm<real>::set(real x)
             p(l, m) *= M_SQRT2 * pow(-1.0, m);
 }
 
+#else
+
+template <typename real> inline real Plm<real>::a(int l) const
+{
+    return sqrt((2.0 * l + 1.0) /
+                (2.0 * l      ));
+}
+
+template <typename real> inline real Plm<real>::b(int l, int m) const
+{
+    return sqrt(((2.0 * l - 1.0) * (2 * l + 1.0)) /
+                ((      l - m  ) * (    l + m  )));
+}
+
+template <typename real> inline real Plm<real>::c(int l, int m) const
+{
+    return sqrt(((2.0 * l + 1.0) * (l + m - 1.0) * (l - m - 1.0)) /
+                ((2.0 * l - 3.0) * (l + m      ) * (l - m      )));
+}
+
+template <typename real> void Plm<real>::set(real x)
+{
+    const real y = sqrt(1.0 - x * x);
+    int l;
+    int m;
+
+    // Begin with the base case.
+
+    p(0, 0) = 0.282094791773878143474040L;
+
+    // Perform the diagonal recurrence.
+
+    for (l = 1; l < n; l++)
+        p(l, l) = y * a(l) * p(l - 1, l - 1);
+
+    // Perform the triangular recurrence.
+
+    for (m = 0; m < n - 1; m++)
+    {
+        p(m + 1, m) = x * b(m + 1, m) * p(m, m);
+
+        for (l = m + 2; l < n; l++)
+            p(l, m) = x * b(l, m) * p(l - 1, m)
+                        - c(l, m) * p(l - 2, m);
+    }
+
+    // Pre-multiply the real SH root 2 and Condon-Shortley phase.
+
+    for     (l = 0; l <  n; l++)
+        for (m = 1; m <= l; m++)
+            p(l, m) *= M_SQRT2 * pow(-1.0, m);
+}
+
+#endif
 //------------------------------------------------------------------------------
 
 // Map and cast the contents of the N * N * c floating point raster p into F.
@@ -499,7 +554,7 @@ template <typename real> void Flm<real>::lanczos(int w)
         if (l == 0)
             filter(l, 1);
         else
-            filter(l, sin(M_PI * real(l) / real(w)) / 
+            filter(l, sin(M_PI * real(l) / real(w)) /
                          (M_PI * real(l) / real(w)));
 }
 
