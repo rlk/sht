@@ -13,7 +13,7 @@ This module provides a straightforward implementation of the real spherical harm
 
 ## Command Line Tools
 
-A few command line tools are provided to directly apply the transform to real image data. These tools are compiled with [this image handling module](http://kooima.net/util3d/image.html), which supports input and output of TIFF, PNG, JPEG, and OpenEXR files of any supported depth. For reliable resynthesis, it is _highly_ recommended that frequency-domain images be stored using 32-bit floating point samples in TIFF format, which are the defaults.
+A few command line tools are provided to directly apply the transform to real image data. These tools are compiled with [this image handling module](https://github.com/rlk/util3d/blob/master/image.md), which supports input and output of TIFF, PNG, JPEG, and OpenEXR files of any supported depth. For reliable resynthesis, it is _highly_ recommended that frequency-domain images be stored using 32-bit floating point samples in TIFF format, which are the defaults.
 
 ### Spherical Harmonic Analysis
 
