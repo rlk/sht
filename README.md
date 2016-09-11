@@ -174,7 +174,7 @@ When performing image IO, both `S` and `F` support bulk transfer functions that 
 - `void Flm<real>::set(const float *data, int N)`  
   `void Flm<real>::get(float *data, int N)`
 
-    Transfer 32-bit floating point data into or out of the frequency domain image. The `data` argument must accomodate `N` &times; `N` &times; `c` 32-bit floats. `N` need not be a power of two, and when `N` does not equal `n` then a truncated set of coefficients is accepted or provided.
+    Transfer 32-bit floating point data into or out of the frequency domain image. The `data` argument must accommodate `N` &times; `N` &times; `c` 32-bit floats. `N` need not be a power of two, and when `N` does not equal `n` then a truncated set of coefficients is accepted or provided.
 
 - `void Sij<real>::set(const float *src)`  
   `void Sij<real>::get(float *dst)`
